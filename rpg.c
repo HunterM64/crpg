@@ -8,59 +8,57 @@
 #include "players.h"
 #include "fightMenu.h"
 
-char *choices[] = {
-    "Fight",
-    "Run",
-};
-
 // function prototypes
-int fight (player *attacker, player *target);
-void clear_messages();
+void fight (player *attacker, player *target);
 int fightmenu();
 
 int main() {
-    player *Hero = NewPlayer(WARRIOR, "HERO");
+    player *Hero = NewPlayer(ACCOUNTANT, "HERO");
     player *Villian = NewPlayer(MAGE, "BADDY");
 
-    DisplayStatsFull(Hero);
-    DisplayStatsFull(Villian);
     fight(Hero, Villian);
-    DisplayStats(Villian);
+
+    system("clear");
 
     return 0;
 }
 
-void clear_messages() {
-    move(LINES -3, 0);
-    clrtoeol();
-
-    return;
-}
-
-int fight (player *attacker, player *target) {
+void fight (player *attacker, player *target) {
     
     // effective attack, atk - def
     int effatk = attacker->attack - target->defense;
 
-    int x = fightmenu();
+    while (target->health > 0) {
 
-    printf("%d\n\n", x);
+        system("clear");
 
-    switch(x) {
-        case 1:
-            printf("%s dealt %d damage to %s!\n\n", attacker->name, effatk, target->name);
-            target->health -= effatk;
-            break;
-        case 2:
-            printf("wimp\n\n");
-            break;
-        default:
-            printf("you really messed up bud\n");
-            break;
+        int x = fightmenu();
+
+        printf("%d\n\n", x);
+
+        switch(x) {
+            case 1:
+                printf("%s dealt %d damage to %s!\n\n", attacker->name, effatk, target->name);
+                target->health -= effatk;
+                DisplayStats(target);
+                // wait for a button push
+                getch();
+                break;
+            case 2:
+                printf("wimp\n\n");
+                getch();
+                break;
+            default:
+                printf("you really messed up bud\n");
+                getch();
+                break;
+        }
     }
 
-    // might use this number
-    return effatk;
+    printf("final fantasy music\n");
+    getch();
+
+    return;
 }
 
 int fightmenu() {
@@ -83,7 +81,7 @@ int fightmenu() {
     my_items = (ITEM **)calloc(n_choices + 1, sizeof(ITEM *));
 
     for(i = 0; i < n_choices; ++i)
-            my_items[i] = new_item(choices[i], choices[i]);
+            my_items[i] = new_item(nums[i], choices[i]);
     my_items[n_choices] = (ITEM *)NULL;
 
     my_menu = new_menu((ITEM **)my_items);
@@ -118,13 +116,11 @@ int fightmenu() {
             case 10: /*ENTER*/
                 choice = highlight;
                 //mvprintw(LINES - 3, 0, "You chose choice %d", choice);
-                free_item(my_items[0]);
-                free_item(my_items[1]);
-                free_menu(my_menu);
-                endwin();
+                break;
+        }
 
-                return choice;
-
+        if (choice == highlight) {
+            break;
         }
     }
 
@@ -132,5 +128,7 @@ int fightmenu() {
     free_item(my_items[1]);
     free_menu(my_menu);
     endwin();
+
+    return choice;
 
 }
