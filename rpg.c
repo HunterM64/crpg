@@ -10,12 +10,13 @@
 
 // function prototypes
 void fight (player *attacker, player *target);
-int fightmenu(player *attacker, player *target);
 
 int main() {
+    // create hero and villain
     player *Hero = NewPlayer(ACCOUNTANT, "HERO");
     player *Villian = NewPlayer(MAGE, "BADDY");
 
+    // make them fight
     fight(Hero, Villian);
 
     system("clear");
@@ -23,31 +24,60 @@ int main() {
     return 0;
 }
 
+// determines the correct actions to take based on player input in fightMenu
 void fight (player *attacker, player *target) {
     
-    // effective attack, atk - def
-    int effatk = attacker->attack - target->defense;
+    // effective attack, atk - def, dont want this being less than 0
+    int effAtkAtkr = (attacker->attack - target->defense < 0) ? 0: attacker->attack - target->defense;
+    int effAtkTarg = (target->attack - attacker->defense < 0) ? 0: target->attack - attacker->defense;
 
-    while (target->health > 0) {
+    // keep looping combat til its over
+    bool theFightIsOn = true;
+    // how the fight ended, 0 = win, 1 = loss, 2 = run
+    int result;
+    while (theFightIsOn) {
 
         system("clear");
 
+        // get player input from fight menu
         int x = fightmenu(attacker, target);
 
-        printf("%d\n\n", x);
+        // debugging
+        //printf("%d\n\n", x);
 
+        // switch case for input
         switch(x) {
-            case 1:
-                printf("%s dealt %d damage to %s!\n\n", attacker->name, effatk, target->name);
-                target->health -= effatk;
+            case 1: // FIGHT
+                printf("%s dealt %d damage to %s!\n\n", attacker->name, effAtkAtkr, target->name);
+
+                // deal damage to target
+                target->health -= effAtkAtkr;
+
                 DisplayStats(target);
+
+                printf("%s counterattacks for %d damage to %s! \n\n", target->name, effAtkTarg, attacker->name);
+
+                // deal damage to attacker
+                attacker->health -= effAtkTarg;
+
+                DisplayStats(attacker);
+
+                // game ends when someone's health is zero
+                if(target->health <= 0 || attacker->health <= 0) {
+                    theFightIsOn = false;
+                    // i learned how to use this and now im going to abuse this
+                    result = (target->health <= 0) ? 0 : 1;
+                }
+
                 // wait for a button push
                 getch();
                 break;
-            case 2:
-                printf("wimp\n\n");
-                getch();
+
+            case 2: // RUN 
+                theFightIsOn = false;
+                result = 2;
                 break;
+
             default:
                 printf("you really messed up bud\n");
                 getch();
@@ -55,82 +85,25 @@ void fight (player *attacker, player *target) {
         }
     }
 
-    printf("final fantasy music\n");
+    switch(result) {
+        case 0: // WIN
+            printf("YOU WIN\n* final fantasy music *\n");
+            break;
+
+        case 1: // LOSE
+            printf("YOU LOSE\n* losers don't get music *\n");
+            break;
+
+        case 2: // RUN
+            printf("YOU RAN\n* runners don't get music either *\n");
+            break;
+
+        default: 
+            printf("WHAT\n");
+            break;
+    }
+
     getch();
 
     return;
-}
-
-int fightmenu(player *attacker, player *target) {
-    ITEM **my_items;
-    int c;
-    MENU *my_menu;
-    int n_choices, i;
-    ITEM *cur_item;
-
-    int choice = 0;
-    int highlight = 1;
-
-    initscr();
-    cbreak();
-    noecho();
-    keypad(stdscr, TRUE);
-
-    n_choices = ARRAY_SIZE(choices);
-    // I have no idea what a calloc is 
-    my_items = (ITEM **)calloc(n_choices + 1, sizeof(ITEM *));
-
-    for(i = 0; i < n_choices; ++i)
-            my_items[i] = new_item(nums[i], choices[i]);
-    my_items[n_choices] = (ITEM *)NULL;
-
-    my_menu = new_menu((ITEM **)my_items);
-    DisplayStatsCurses(attacker, 4, 0);
-    mvprintw(LINES - 2, 0, "F1 to Exit");
-    post_menu(my_menu);
-    refresh();
-
-    while((c = getch()) != KEY_F(1)) {
-        switch(c) {
-            case KEY_DOWN:
-                clear_messages();
-
-                if(highlight != n_choices) {
-                    highlight++;
-                }
-
-                menu_driver(my_menu, REQ_DOWN_ITEM);
-                
-                break;
-
-            case KEY_UP:
-                clear_messages();
-
-                if (highlight != 1) {
-                    highlight--;
-                }
-
-                menu_driver(my_menu, REQ_UP_ITEM);
-                
-                break;
-
-            case 10: /*ENTER*/
-                choice = highlight;
-                //mvprintw(LINES - 3, 0, "You chose choice %d", choice);
-                break;
-        }
-
-        if (choice == highlight) {
-            break;
-        }
-    }
-
-    for (int i = 0; i < n_choices; i++) {
-        free_item(my_items[i]);
-    }
-    free_menu(my_menu);
-    endwin();
-
-    return choice;
-
 }
