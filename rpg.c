@@ -10,7 +10,7 @@
 
 // function prototypes
 void fight (player *attacker, player *target);
-int fightmenu();
+int fightmenu(player *attacker, player *target);
 
 int main() {
     player *Hero = NewPlayer(ACCOUNTANT, "HERO");
@@ -32,7 +32,7 @@ void fight (player *attacker, player *target) {
 
         system("clear");
 
-        int x = fightmenu();
+        int x = fightmenu(attacker, target);
 
         printf("%d\n\n", x);
 
@@ -61,7 +61,7 @@ void fight (player *attacker, player *target) {
     return;
 }
 
-int fightmenu() {
+int fightmenu(player *attacker, player *target) {
     ITEM **my_items;
     int c;
     MENU *my_menu;
@@ -85,6 +85,7 @@ int fightmenu() {
     my_items[n_choices] = (ITEM *)NULL;
 
     my_menu = new_menu((ITEM **)my_items);
+    DisplayStatsCurses(attacker, 4, 0);
     mvprintw(LINES - 2, 0, "F1 to Exit");
     post_menu(my_menu);
     refresh();
@@ -124,8 +125,9 @@ int fightmenu() {
         }
     }
 
-    free_item(my_items[0]);
-    free_item(my_items[1]);
+    for (int i = 0; i < n_choices; i++) {
+        free_item(my_items[i]);
+    }
     free_menu(my_menu);
     endwin();
 

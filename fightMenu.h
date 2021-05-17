@@ -12,9 +12,14 @@ static char *nums[] = {
 };
 
 
+void DisplayStatsCurses(player *target, int y, int x) {
+    mvprintw(y, x, "%s\nHealth: %d\nMana: %d\n\n", target->name, target->health, target->mana);
+}
+
 void clear_messages() {
     move(LINES -3, 0);
     clrtoeol();
 
     return;
 }
+
